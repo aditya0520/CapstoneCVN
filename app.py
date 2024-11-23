@@ -6,6 +6,7 @@ from smartsheet_fetcher import SmartsheetFetcher
 from clininc_turnover import ClinicTurnover
 from staffing_summary import StaffingSummary
 from months_worked import MonthsWorked
+from headcount import Headcount
 
 # Fetch sheet names using SmartsheetFetcher
 bearer_token = 'hhQ21NI9mu4JzKmskRS19wfiY7lX4smNGDUAo'
@@ -23,7 +24,7 @@ def show_input_fields():
 
     row = 0  # Initialize row index
 
-    if dropdown.get() in ["Clinic Turnover", "Months Worked", "Staffing Ratio"]:
+    if dropdown.get() in ["Clinic Turnover", "Months Worked", "Staffing Ratio", "Head Count"]:
         # Dropdown for Sheet selection
         tk.Label(input_frame, text="Select Sheet:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
         dynamic_widgets['dropdown1'] = OptionMenu(input_frame, dropdown1, "Select Sheet", *sheet_names, bootstyle="primary")
@@ -154,27 +155,44 @@ def submit():
                 print(data_frame1.head())
 
 
-                # calculator = StaffingSummary(grant_year=duration_months)
-                # summary_df = calculator.generate_summary(data_frame1)
+                calculator = StaffingSummary(grant_year=duration_months)
+                summary_df = calculator.generate_summary(data_frame1)
 
-                # summary_df.to_excel('staffing_ratio.xlsx', index=False)
-                # print(summary_df.head())
-                # alert_label.config(text="Staffing Ratio File Generated!")
+                summary_df.to_excel('staffing_ratio.xlsx', index=False)
+                print(summary_df.head())
+                alert_label.config(text="Staffing Ratio File Generated!")
             except Exception as e:
                 print(f"Error fetching sheet: {e}")
                 alert_label.config(text="Error fetching sheet.")
 
-            
-            calculator = StaffingSummary(grant_year=duration_months)
-            summary_df = calculator.generate_summary(data_frame1)
-
-            summary_df.to_excel('staffing_ratio.xlsx', index=False)
-            print(summary_df.head())
-            alert_label.config(text="Staffing Ratio File Generated!")
         
         else:
             print("Please select a sheet.")
             alert_label.config(text="Please select a sheet.")
+    
+    elif selected_option == "Head Count":
+        sheet1 = dropdown1.get()
+
+        if sheet1 != "Select Sheet":
+            sheet_id1 = all_sheets_data[sheet1]
+            try:
+                data_frame1 = fetcher.fetch_smartsheet_data(sheet_id1)
+                print(f"Fetched data for Sheet 1 ({sheet1}):")
+                print(data_frame1.head())
+
+                calculator = Headcount(data_frame1) 
+                summary_df = calculator.add_headcount_column()
+
+                print(summary_df)
+
+                alert_label.config(text="Head Count Summary File Generated!")
+            except Exception as e:
+                print(f"Error fetching sheet: {e}")
+                alert_label.config(text="Error fetching sheet.")
+        else:
+            print("Please select a sheet.")
+            alert_label.config(text="Please select a sheet.")
+
         
     
     else:
@@ -217,7 +235,7 @@ grant_end_date_picker = DateEntry(input_frame, width=12)
 
 # Attach the trace_add callback after input_frame is defined
 dropdown.trace_add("write", lambda *args: show_input_fields())  # Trigger on dropdown change
-OptionMenu(root, dropdown, "Select Action", "Clinic Turnover", "Months Worked", "Staffing Ratio", bootstyle="primary").pack(pady=5)
+OptionMenu(root, dropdown, "Select Action", "Clinic Turnover", "Months Worked", "Staffing Ratio", "Head Count", bootstyle="primary").pack(pady=5)
 
 # Alert label for feedback
 alert_label = tk.Label(root, text="", font=("Arial", 10), fg="green", bg=style.colors.bg)

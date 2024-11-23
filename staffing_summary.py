@@ -56,17 +56,3 @@ class StaffingSummary:
         summary['Currently Working Count'] = df['End Date'].isna().sum()
 
         return pd.DataFrame([summary])
-
-    def save_to_excel(self, summary_dataframe, output_file):
-        """
-        Save the summary DataFrame to an Excel file.
-
-        Args:
-        - summary_dataframe (pd.DataFrame): DataFrame containing the staffing summary.
-        - output_file (str): Path to save the Excel file.
-        """
-        with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-            summary_dataframe.to_excel(writer, sheet_name='Summary', index=False)
-        print(f"Summary saved to {output_file}")
-
-
