@@ -43,8 +43,8 @@ class StaffingSummary:
         if not pd.api.types.is_string_dtype(df['Position']):
             raise ValueError("'Position' must be a string column.")
 
-        if not pd.api.types.is_datetime64_any_dtype(df['End Date']):
-            raise ValueError("'End Date' must be a datetime column or NaT for missing values.")
+        if not (pd.api.types.is_datetime64_any_dtype(df['End Date']) or not pd.api.types.is_string_dtype(df['End Date'])):
+            raise ValueError("'End Date' must be a datetime or string column.")
 
         # Check for negative or missing values in key columns
         if (df['Months Worked (FTE Adjusted)'] < 0).any():
