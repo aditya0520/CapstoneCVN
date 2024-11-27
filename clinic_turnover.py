@@ -3,10 +3,6 @@ import numpy as np
 import re  
 import openpyxl 
 
-import pandas as pd
-import numpy as np
-import re
-from openpyxl import Workbook
 
 class ClinicTurnover:
     """
@@ -32,6 +28,26 @@ class ClinicTurnover:
         - grant_start_date (str): The start date of the grant year period in 'YYYY-MM-DD' format.
         - grant_end_date (str): The end date of the grant year period in 'YYYY-MM-DD' format.
         """
+        # Validate DataFrames
+        if not isinstance(df_prev_year, pd.DataFrame):
+            raise TypeError("df_prev_year must be a pandas DataFrame")
+        if not isinstance(df_curr_year, pd.DataFrame):
+            raise TypeError("df_curr_year must be a pandas DataFrame")
+
+        # Validate clinic_code
+        if not isinstance(clinic_code, str):
+            raise TypeError("clinic_code must be a string")
+
+        # Validate date formats
+        try:
+            pd.to_datetime(grant_start_date)
+        except ValueError:
+            raise ValueError("grant_start_date must be a valid date in 'YYYY-MM-DD' format")
+        try:
+            pd.to_datetime(grant_end_date)
+        except ValueError:
+            raise ValueError("grant_end_date must be a valid date in 'YYYY-MM-DD' format")
+
         self.df_prev_year = df_prev_year
         self.df_curr_year = df_curr_year
         self.clinic_code = clinic_code
@@ -46,12 +62,33 @@ class ClinicTurnover:
         - pd.DataFrame: The processed DataFrame containing merged and formatted data with summaries.
         """
 
+        # Check if required columns exist
+        required_columns = ['Month Start', 'Month End', 'Turnover']
+        for col in required_columns:
+            if col not in self.df_prev_year.columns:
+                raise KeyError(f"Column '{col}' not found in df_prev_year")
+            if col not in self.df_curr_year.columns:
+                raise KeyError(f"Column '{col}' not found in df_curr_year")
+
+        # Convert date columns to datetime
+        try:
+            self.df_prev_year['Month Start'] = pd.to_datetime(self.df_prev_year['Month Start'])
+            self.df_prev_year['Month End'] = pd.to_datetime(self.df_prev_year['Month End'])
+            self.df_curr_year['Month Start'] = pd.to_datetime(self.df_curr_year['Month Start'])
+            self.df_curr_year['Month End'] = pd.to_datetime(self.df_curr_year['Month End'])
+        except Exception as e:
+            raise ValueError(f"Error converting 'Month Start' or 'Month End' to datetime: {e}")
+
         # Filter data according to the grant year period
-        data_prev_year_filtered = self.df_prev_year[self.df_prev_year['Month Start'] >= self.grant_start_date]
-        data_curr_year_filtered = self.df_curr_year[self.df_curr_year['Month End'] <= self.grant_end_date]
+        data_prev_year_filtered = self.df_prev_year[self.df_prev_year['Month Start'] >= pd.to_datetime(self.grant_start_date)]
+        data_curr_year_filtered = self.df_curr_year[self.df_curr_year['Month End'] <= pd.to_datetime(self.grant_end_date)]
 
         # Concatenate the filtered data
         grant_year_data = pd.concat([data_prev_year_filtered, data_curr_year_filtered], ignore_index=True)
+
+        # Check if 'Turnover' column is numeric
+        if not pd.api.types.is_numeric_dtype(grant_year_data['Turnover']):
+            raise TypeError("'Turnover' column must be numeric")
 
         grant_year_data['Month Start'] = pd.to_datetime(grant_year_data['Month Start'])
         grant_year_data['Month End'] = pd.to_datetime(grant_year_data['Month End'])
@@ -60,6 +97,10 @@ class ClinicTurnover:
         grant_year_data['Month Start'] = grant_year_data['Month Start'].dt.strftime('%m/%d/%y')
         grant_year_data['Month End'] = grant_year_data['Month End'].dt.strftime('%m/%d/%y')
         grant_year_data['Turnover'] = grant_year_data['Turnover'].map("{:.0%}".format)
+
+        # Check for null values in 'Month Start' after formatting
+        if grant_year_data['Month Start'].isnull().any():
+            raise ValueError("'Month Start' contains null values after formatting")
 
         # Insert year rows based on changes in the year
         final_data = grant_year_data.copy()
@@ -91,4 +132,3 @@ class ClinicTurnover:
         final_data = pd.concat([final_data, summary_df], ignore_index=True)
 
         return final_data
-
