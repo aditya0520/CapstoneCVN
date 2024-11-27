@@ -1,0 +1,6 @@
+ttkbootstrap
+tkinter
+numpy
+pandas
+openpyxl
+re
