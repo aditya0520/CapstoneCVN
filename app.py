@@ -1,6 +1,7 @@
 import tkinter as tk
 from ttkbootstrap import Style
 from datetime import datetime
+import re
 from ttkbootstrap.widgets import OptionMenu, Button, DateEntry
 from smartsheet_fetcher import SmartsheetFetcher
 from clininc_turnover import ClinicTurnover
@@ -81,6 +82,20 @@ def submit():
         except ValueError as e:
             print(f"Error parsing dates: {e}")
             alert_label.config(text="Invalid date format. Please select valid dates.")
+            return
+
+        # Define the allowed patterns using regex
+        pattern = r'^Clinic Turnover \d{4}( \(minus I&F\))? - .+$'
+        
+        # Check if both sheet1 and sheet2 match the required patterns
+        if not re.match(pattern, sheet1):
+            alert_label.config(text="Sheet 1 name is invalid. It should be 'Clinic Turnover YYYY - {clinic-code}' or 'Clinic Turnover YYYY (minus I&F) - {clinic-code}'.")
+            print("Sheet 1 name does not match the required format.")
+            return
+        
+        if not re.match(pattern, sheet2):
+            alert_label.config(text="Sheet 2 name is invalid. It should be 'Clinic Turnover YYYY - {clinic-code}' or 'Clinic Turnover YYYY (minus I&F) - {clinic-code}'.")
+            print("Sheet 2 name does not match the required format.")
             return
 
         if sheet1 != "Select Sheet 1" and sheet2 != "Select Sheet 2":
