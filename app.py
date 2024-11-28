@@ -3,7 +3,7 @@ from ttkbootstrap import Style
 from datetime import datetime
 from ttkbootstrap.widgets import OptionMenu, Button, DateEntry
 from smartsheet_fetcher import SmartsheetFetcher
-from clininc_turnover import ClinicTurnover
+from clinic_turnover import ClinicTurnover
 from staffing_summary import StaffingSummary
 from months_worked import MonthsWorked
 from headcount import Headcount
@@ -90,13 +90,16 @@ def submit():
                 # Fetch data for both sheets as DataFrames
                 data_frame1 = fetcher.fetch_smartsheet_data(sheet_id1)
                 data_frame2 = fetcher.fetch_smartsheet_data(sheet_id2)
-                alert_label.config(text="Data submitted successfully!")
+                clinic_turnover = ClinicTurnover(data_frame1, data_frame2, clinic_code, grant_start_date, grant_end_date)
+                results_df = clinic_turnover.process_data()
+                create_response = fetcher.create_new_sheet("Clinic_Turnover_Calculated" + str(sheet1)[:5] + str(sheet2)[:5], results_df)
+                sheet_id = create_response['result']['id']
+                add_response = fetcher.add_rows_to_sheet(sheet_id, results_df)
+                results_df.to_excel("Clinic_Turnover_Calculated" + str(sheet1)[:5] + str(sheet2)[:5] + ".xlsx", index=False)
+                alert_label.config(text="File Generated and Uploaded")
             except Exception as e:
                 print(f"Error fetching sheets: {e}")
-                alert_label.config(text="Error fetching sheets.")
-            
-            clinic_turnover = ClinicTurnover(data_frame1, data_frame2, clinic_code, grant_start_date, grant_end_date)
-            results_df = clinic_turnover.process_data()
+                alert_label.config(text="Error fetching sheets.")           
 
             print(results_df.head())
         else:
@@ -125,14 +128,16 @@ def submit():
                 data_frame1 = fetcher.fetch_smartsheet_data(sheet_id1)
                 print(f"Fetched data for Sheet 1 ({sheet1}):")
                 print(data_frame1.head())
+                calculator = MonthsWorked(data_frame1, grant_start_date, grant_end_date)
+                results_df = calculator.get_results()
+                print(results_df.head)
+                create_response = fetcher.create_new_sheet("Months_worked_Calculated" + str(sheet_id1), results_df)
+                sheet_id = create_response['result']['id']
+                add_response = fetcher.add_rows_to_sheet(sheet_id, results_df)
+                results_df.to_excel("Months_worked_Calculated" + str(sheet_id1) + ".xlsx", index=False)
+                alert_label.config(text="File Generated and Uploaded")
             except Exception as e:
                 print(f"Error fetching sheet: {e}")
-            
-        calculator = MonthsWorked(data_frame1, grant_start_date, grant_end_date)
-        results_df = calculator.get_results()
-        print(results_df.head)
-        results_df.to_excel('months_worked.xlsx', index=False)
-        alert_label.config(text="File Generated!")
         
     elif selected_option == "Staffing Ratio":
         sheet1 = dropdown1.get()
@@ -160,12 +165,15 @@ def submit():
 
                 summary_df.to_excel('staffing_ratio.xlsx', index=False)
                 print(summary_df.head())
+                create_response = fetcher.create_new_sheet("Staffing_Ratio_Calculated" + str(sheet_id1), summary_df)
+                sheet_id = create_response['result']['id']
+                add_response = fetcher.add_rows_to_sheet(sheet_id, summary_df)
+                summary_df.to_excel("Staffing_Ratio_Calculated" + str(sheet_id1) + ".xlsx", index=False)
                 alert_label.config(text="Staffing Ratio File Generated!")
             except Exception as e:
                 print(f"Error fetching sheet: {e}")
                 alert_label.config(text="Error fetching sheet.")
-
-        
+            
         else:
             print("Please select a sheet.")
             alert_label.config(text="Please select a sheet.")
@@ -184,8 +192,11 @@ def submit():
                 summary_df = calculator.add_headcount_column()
 
                 print(summary_df)
-
-                alert_label.config(text="Head Count Summary File Generated!")
+                create_response = fetcher.create_new_sheet("Head_Count_Calculated" + str(sheet_id1), summary_df)
+                sheet_id = create_response['result']['id']
+                add_response = fetcher.add_rows_to_sheet(sheet_id, summary_df)
+                summary_df.to_excel("Head_Count_Calculated" + str(sheet_id1) + ".xlsx", index=False)
+                alert_label.config(text="Head Count Summary File Generated and Uploaded")
             except Exception as e:
                 print(f"Error fetching sheet: {e}")
                 alert_label.config(text="Error fetching sheet.")
