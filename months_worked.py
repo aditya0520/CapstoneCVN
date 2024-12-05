@@ -96,11 +96,6 @@ class MonthsWorked:
 
         multiple_entry_names = self.df[self.df.duplicated(['Name'], keep=False)]['Name'].unique()
 
-        
-        print("DF SHAPE IS ", self.df.shape)
-        file_path = "Current_output.xlsx"  
-        self.df.to_excel(file_path, index=False)
-
         for _, row in self.df.iterrows():
             start_date = row['Start Date']
             end_date = row['End Date'] if pd.notna(row['End Date']) else None

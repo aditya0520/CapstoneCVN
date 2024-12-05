@@ -1,0 +1,2 @@
+2024-12-05 18:22:50,414 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-05 18:22:50,755 - DEBUG - https://api.smartsheet.com:443 "GET /2.0/sheets HTTP/11" 200 3613

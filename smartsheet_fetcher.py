@@ -64,6 +64,20 @@ class SmartsheetFetcher:
         df = df.dropna(how='all')
         
         return df
+    
+    # Function to clean invalid JSON values
+    def clean_payload(self, data):
+        if isinstance(data, dict):
+            return {k: self.clean_payload(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self.clean_payload(v) for v in data]
+        elif isinstance(data, float):
+            if not (float('-inf') < data < float('inf')):  # Check for Infinity
+                return None
+            return data
+        else:
+            return data
+
 
     def create_new_sheet(self, sheet_name, df):
         """
@@ -117,7 +131,7 @@ class SmartsheetFetcher:
         
         # Send the rows to Smartsheet
         add_rows_url = f'https://api.smartsheet.com/2.0/sheets/{sheet_id}/rows'
-        payload = rows_to_add
+        payload = self.clean_payload(rows_to_add)
         response = requests.post(add_rows_url, json=payload, headers=self.headers)
         
         return response.json()
