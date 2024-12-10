@@ -103,7 +103,7 @@ def submit():
                 create_response = fetcher.create_new_sheet("Clinic_Turnover_Calculated" + str(sheet1)[:5] + str(sheet2)[:5], results_df)
                 sheet_id = create_response['result']['id']
                 add_response = fetcher.add_rows_to_sheet(sheet_id, results_df)
-                results_df.to_excel("Clinic_Turnover_Calculated" + str(sheet1)[:5] + str(sheet2)[:5] + ".xlsx", index=False)
+                results_df.to_excel("Files/Clinic_Turnover_Calculated" + str(sheet1)[:5] + str(sheet2)[:5] + ".xlsx", index=False)
                 alert_label.config(text="File Generated and Uploaded")
             except Exception as e:
                 logging.error(f"Error processing Clinic Turnover: {e}")
@@ -139,7 +139,7 @@ def submit():
                 create_response = fetcher.create_new_sheet("Months_Worked_Calculated" + str(sheet_id1), results_df)
                 sheet_id = create_response['result']['id']
                 add_response = fetcher.add_rows_to_sheet(sheet_id, results_df)
-                results_df.to_excel("Months_Worked_Calculated" + str(sheet_id1) + ".xlsx", index=False)
+                results_df.to_excel("Files/Months_Worked_Calculated" + str(sheet_id1) + ".xlsx", index=False)
                 alert_label.config(text="File Generated and Uploaded")
             except Exception as e:
                 logging.error(f"Error processing Months Worked: {e}")
@@ -171,7 +171,7 @@ def submit():
                 create_response = fetcher.create_new_sheet("Staffing_Ratio_Calculated" + str(sheet_id1), summary_df)
                 sheet_id = create_response['result']['id']
                 add_response = fetcher.add_rows_to_sheet(sheet_id, summary_df)
-                summary_df.to_excel("Staffing_Ratio_Calculated" + str(sheet_id1) + ".xlsx", index=False)
+                summary_df.to_excel("Files/Staffing_Ratio_Calculated" + str(sheet_id1) + ".xlsx", index=False)
                 alert_label.config(text="Staffing Ratio File Generated and Uploaded")
             except Exception as e:
                 logging.error(f"Error processing Staffing Ratio: {e}")
@@ -194,7 +194,7 @@ def submit():
                 create_response = fetcher.create_new_sheet("Head_Count_Calculated" + str(sheet_id1), summary_df)
                 sheet_id = create_response['result']['id']
                 add_response = fetcher.add_rows_to_sheet(sheet_id, summary_df)
-                summary_df.to_excel("Head_Count_Calculated" + str(sheet_id1) + ".xlsx", index=False)
+                summary_df.to_excel("Files/Head_Count_Calculated" + str(sheet_id1) + ".xlsx", index=False)
                 alert_label.config(text="Head Count Summary File Generated and Uploaded")
             except Exception as e:
                 logging.error(f"Error processing Head Count: {e}")
