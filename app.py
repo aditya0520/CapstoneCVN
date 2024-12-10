@@ -220,7 +220,7 @@ root.title("Clinic Metrics Calculator")
 style.configure("TMenubutton", font=("Arial", 10), padding=5)
 style.configure("Submit.TButton", font=("Arial", 10), padding=5)
 
-instruction_label = tk.Label(root, text="Please select the Sheet:", font=("Arial", 15), fg="white", bg=style.colors.bg)
+instruction_label = tk.Label(root, text="Please complete the following fields:", font=("Arial", 15), fg="white", bg=style.colors.bg)
 instruction_label.pack(pady=(20, 5))
 
 # Main dropdown

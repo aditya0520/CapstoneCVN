@@ -1,0 +1,12 @@
+2024-12-10 18:17:52,874 - INFO - Bearer token fetched successfully: hhQ2******
+2024-12-10 18:17:52,914 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-10 18:17:53,148 - DEBUG - https://api.smartsheet.com:443 "GET /2.0/sheets HTTP/11" 200 3345
+2024-12-10 18:28:41,592 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-10 18:28:42,166 - DEBUG - https://api.smartsheet.com:443 "GET /2.0/sheets/6100314079842180 HTTP/11" 200 18835
+2024-12-10 18:28:42,182 - INFO - Fetched data for Sheet 1 ((Archived) SAN ANTONIO, Y8, 5/1/23 - 4/30/24)
+2024-12-10 18:28:42,200 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-10 18:28:42,679 - DEBUG - https://api.smartsheet.com:443 "POST /2.0/sheets HTTP/11" 200 997
+2024-12-10 18:28:42,684 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-10 18:28:42,907 - DEBUG - https://api.smartsheet.com:443 "GET /2.0/sheets/7935090407460740 HTTP/11" 200 1219
+2024-12-10 18:28:42,918 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-10 18:28:45,325 - DEBUG - https://api.smartsheet.com:443 "POST /2.0/sheets/7935090407460740/rows HTTP/11" 200 None
