@@ -122,8 +122,8 @@ class MonthsWorked:
             fte_adjusted_months_list.append(fte_adjusted_months)
             months_printed_list.append(months_list)
 
-        self.df['Months Worked (Custom)'] = months_worked_list
-        self.df['FTE-Adjusted Months Worked (Custom)'] = fte_adjusted_months_list
+        self.df['Months Worked'] = months_worked_list
+        self.df['FTE-Adjusted Months Worked'] = fte_adjusted_months_list
 
         selected_columns = [
             'Cohen Clinic',
@@ -134,8 +134,8 @@ class MonthsWorked:
             'End Date',
             'Employee Leave (start date)',
             'Employee Leave (end date)',
-            'Months Worked (Custom)',
-            'FTE-Adjusted Months Worked (Custom)'    
+            'Months Worked',
+            'FTE-Adjusted Months Worked'    
         ]
         return self.df[selected_columns]
 

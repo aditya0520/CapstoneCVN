@@ -1,0 +1,3 @@
+2024-12-10 15:59:10,941 - INFO - Bearer token fetched successfully: hhQ2******
+2024-12-10 15:59:10,984 - DEBUG - Starting new HTTPS connection (1): api.smartsheet.com:443
+2024-12-10 15:59:11,255 - DEBUG - https://api.smartsheet.com:443 "GET /2.0/sheets HTTP/11" 200 3622

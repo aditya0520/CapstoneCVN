@@ -7,19 +7,67 @@ from clinic_turnover import ClinicTurnover
 from staffing_summary import StaffingSummary
 from months_worked import MonthsWorked
 from headcount import Headcount
+from datetime import datetime, timedelta
 import logging
+import os
 
 # Configure logging
-log_filename = f"log_{datetime.now().strftime('%Y-%m-%d')}.log"  # Creates a new log file every day
+
+log_dir = "./Logs"
+
+
+# Get the current time
+now = datetime.now()
+
+# Remove log files older than 7 days
+for filename in os.listdir(log_dir):
+    file_path = os.path.join(log_dir, filename)
+    if os.path.isfile(file_path):
+        # Get the file's modification time
+        file_mtime = datetime.fromtimestamp(os.path.getmtime(file_path))
+        # Check if the file is older than 7 days
+        if (now - file_mtime) > timedelta(days=7):
+            os.remove(file_path)
+
+# Define the base filename
+base_filename = f"./Logs/log_{datetime.now().strftime('%Y-%m-%d')}"
+log_filename = f"{base_filename}.log"
+counter = 1
+
+# Check if the file exists and create a new one if necessary
+while os.path.exists(log_filename):
+    log_filename = f"{base_filename}_{counter}.log"
+    counter += 1
+
+# Configure logging
 logging.basicConfig(
     filename=log_filename,
-    filemode='w', 
+    filemode='w',
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.DEBUG  # Log all levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 )
+def get_bearer_token(file_path):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Config file not found at {file_path}")
+    
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.startswith("BEARER_TOKEN="):
+                return line.strip().split('=', 1)[1]
+    
+    raise ValueError("BEARER_TOKEN not found in the config file")
 
 # Fetch sheet names using SmartsheetFetcher
-bearer_token = 'hhQ21NI9mu4JzKmskRS19wfiY7lX4smNGDUAo' 
+config_file_path = "./config.txt"
+try:
+    bearer_token = get_bearer_token(config_file_path)
+    logging.info(f"Bearer token fetched successfully: {bearer_token[:4]}******")
+except FileNotFoundError as fnf_error:
+    logging.error(f"File not found: {fnf_error}")
+except ValueError as val_error:
+    logging.error(f"Error in config file: {val_error}")
+except Exception as e:
+    logging.critical(f"Unexpected error occurred: {e}") 
 fetcher = SmartsheetFetcher(bearer_token)
 all_sheets_data = fetcher.fetch_all_sheets()
 sheet_names = list(all_sheets_data.keys())  # Convert to a list for indexing
