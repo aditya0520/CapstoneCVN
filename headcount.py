@@ -24,7 +24,7 @@ class Headcount:
         """
         try:
             # Calculate the headcount
-            headcount_value = self.df['Months Worked (FTE Adjusted)'].sum() / 12
+            headcount_value = self.df['FTE-Adjusted Months Worked'].sum() / 12
 
             # Add the 'Headcount' column with the value only in the first row
             self.df['Headcount'] = ""

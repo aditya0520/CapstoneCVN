@@ -4,9 +4,7 @@ from datetime import datetime
 from ttkbootstrap.widgets import OptionMenu, Button, DateEntry
 from smartsheet_fetcher import SmartsheetFetcher
 from clinic_turnover import ClinicTurnover
-from staffing_summary import StaffingSummary
 from months_worked import MonthsWorked
-from headcount import Headcount
 from datetime import datetime, timedelta
 import logging
 import os
@@ -68,9 +66,10 @@ except ValueError as val_error:
     logging.error(f"Error in config file: {val_error}")
 except Exception as e:
     logging.critical(f"Unexpected error occurred: {e}") 
+
 fetcher = SmartsheetFetcher(bearer_token)
 all_sheets_data = fetcher.fetch_all_sheets()
-sheet_names = list(all_sheets_data.keys())  # Convert to a list for indexing
+sheet_names = list(all_sheets_data.keys())  
 
 dynamic_widgets = {}  # Dictionary to store references to dynamic widgets
 
@@ -82,42 +81,48 @@ def show_input_fields():
 
     row = 0  # Initialize row index
 
-    if dropdown.get() in ["Clinic Turnover", "Months Worked", "Staffing Ratio", "Head Count"]:
+    if dropdown.get() == "Clinic Turnover":
         # Dropdown for Sheet selection
+        tk.Label(input_frame, text="Select Sheet 1:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['dropdown1'] = OptionMenu(input_frame, dropdown1, "Select Sheet", *sheet_names, bootstyle="primary")
+        dynamic_widgets['dropdown1'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+
+        row += 1
+        tk.Label(input_frame, text="Select Sheet 2:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['dropdown2'] = OptionMenu(input_frame, dropdown2, "Select Sheet", *sheet_names, bootstyle="primary")
+        dynamic_widgets['dropdown2'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+
+        row += 1
+        tk.Label(input_frame, text="Enter Clinic Code:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['clinic_code_entry'] = tk.Entry(input_frame, font=("Arial", 10))
+        dynamic_widgets['clinic_code_entry'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+
+        row += 1
+        tk.Label(input_frame, text="Grant Start Date:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['grant_start_date_picker'] = DateEntry(input_frame, width=12)
+        dynamic_widgets['grant_start_date_picker'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+
+        row += 1
+        tk.Label(input_frame, text="Grant End Date:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['grant_end_date_picker'] = DateEntry(input_frame, width=12)
+        dynamic_widgets['grant_end_date_picker'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+
+        # Add Date Pickers for Grant Start and End Dates
+    elif dropdown.get() == "Months Worked + Staffing Ratio + Head Count":
         tk.Label(input_frame, text="Select Sheet:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
         dynamic_widgets['dropdown1'] = OptionMenu(input_frame, dropdown1, "Select Sheet", *sheet_names, bootstyle="primary")
         dynamic_widgets['dropdown1'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
 
-        # For "Clinic Turnover," add additional fields
-        if dropdown.get() == "Clinic Turnover":
-            row += 1
-            tk.Label(input_frame, text="Select Sheet 2:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-            dynamic_widgets['dropdown2'] = OptionMenu(input_frame, dropdown2, "Select Sheet", *sheet_names, bootstyle="primary")
-            dynamic_widgets['dropdown2'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+        row += 1
+        tk.Label(input_frame, text="Grant Start Date:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['grant_start_date_picker'] = DateEntry(input_frame, width=12)
+        dynamic_widgets['grant_start_date_picker'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
 
-            row += 1
-            tk.Label(input_frame, text="Enter Clinic Code:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-            dynamic_widgets['clinic_code_entry'] = tk.Entry(input_frame, font=("Arial", 10))
-            dynamic_widgets['clinic_code_entry'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
+        row += 1
+        tk.Label(input_frame, text="Grant End Date:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
+        dynamic_widgets['grant_end_date_picker'] = DateEntry(input_frame, width=12)
+        dynamic_widgets['grant_end_date_picker'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
 
-        # Add Date Pickers for Grant Start and End Dates
-        if dropdown.get() in ["Clinic Turnover", "Months Worked"]:
-            row += 1
-            tk.Label(input_frame, text="Grant Start Date:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-            dynamic_widgets['grant_start_date_picker'] = DateEntry(input_frame, width=12)
-            dynamic_widgets['grant_start_date_picker'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
-
-            row += 1
-            tk.Label(input_frame, text="Grant End Date:", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-            dynamic_widgets['grant_end_date_picker'] = DateEntry(input_frame, width=12)
-            dynamic_widgets['grant_end_date_picker'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
-
-        # For "Staffing Ratio," add a field for Duration (months)
-        if dropdown.get() == "Staffing Ratio":
-            row += 1
-            tk.Label(input_frame, text="Enter Duration (months):", font=("Arial", 12), fg="white", bg=style.colors.bg).grid(row=row, column=0, sticky="w", padx=10, pady=5)
-            dynamic_widgets['duration_entry'] = tk.Entry(input_frame, font=("Arial", 10))
-            dynamic_widgets['duration_entry'].grid(row=row, column=1, sticky="ew", padx=10, pady=5)
 
 def submit():
     selected_option = dropdown.get()
@@ -161,7 +166,7 @@ def submit():
             logging.warning("Please select both sheets.")
             alert_label.config(text="Please select both sheets.")
         
-    elif selected_option == "Months Worked":
+    elif selected_option == "Months Worked + Staffing Ratio + Head Count":
         grant_start_date = dynamic_widgets['grant_start_date_picker'].entry.get()
         grant_end_date = dynamic_widgets['grant_end_date_picker'].entry.get()
 
@@ -184,70 +189,18 @@ def submit():
                 logging.info(f"Fetched data for Sheet 1 ({sheet1})")
                 calculator = MonthsWorked(data_frame1, grant_start_date_dt, grant_end_date_dt)
                 results_df = calculator.get_results()
-                create_response = fetcher.create_new_sheet("Months_Worked_Calculated" + str(sheet_id1), results_df)
+                headcount_df = calculator.add_headcount_column(results_df)
+                month_difference = (grant_end_date_dt.year - grant_start_date_dt.year) * 12 + grant_end_date_dt.month - grant_start_date_dt.month
+                staff_summary_df = calculator.generate_summary(headcount_df, month_difference)
+                create_response = fetcher.create_new_sheet("Months_Worked_Multiple_Calculated" + str(sheet_id1), staff_summary_df)
                 sheet_id = create_response['result']['id']
                 add_response = fetcher.add_rows_to_sheet(sheet_id, results_df)
-                results_df.to_excel("Files/Months_Worked_Calculated" + str(sheet_id1) + ".xlsx", index=False)
+                staff_summary_df.to_excel("Files/Months_Worked_Multiple_Calculated" + str(sheet_id1) + ".xlsx", index=False)
                 alert_label.config(text="File Generated and Uploaded")
             except Exception as e:
                 logging.error(f"Error processing Months Worked: {e}")
                 logging.debug("Detailed traceback:", exc_info=True)
                 alert_label.config(text="Error processing Months Worked.")
-        else:
-            logging.warning("Please select a sheet.")
-            alert_label.config(text="Please select a sheet.")
-    
-    elif selected_option == "Staffing Ratio":
-        sheet1 = dropdown1.get()
-        duration_months = dynamic_widgets['duration_entry'].get()
-
-        try:
-            # Ensure duration is a valid integer
-            duration_months = int(duration_months)
-        except ValueError:
-            logging.error("Invalid duration. Please enter a valid number.")
-            alert_label.config(text="Invalid duration. Please enter a valid number.")
-            return
-
-        if sheet1 != "Select Sheet":
-            sheet_id1 = all_sheets_data[sheet1]
-            try:
-                data_frame1 = fetcher.fetch_smartsheet_data(sheet_id1)
-                logging.info(f"Fetched data for Sheet 1 ({sheet1})")
-                calculator = StaffingSummary(grant_year=duration_months)
-                summary_df = calculator.generate_summary(data_frame1)
-                create_response = fetcher.create_new_sheet("Staffing_Ratio_Calculated" + str(sheet_id1), summary_df)
-                sheet_id = create_response['result']['id']
-                add_response = fetcher.add_rows_to_sheet(sheet_id, summary_df)
-                summary_df.to_excel("Files/Staffing_Ratio_Calculated" + str(sheet_id1) + ".xlsx", index=False)
-                alert_label.config(text="Staffing Ratio File Generated and Uploaded")
-            except Exception as e:
-                logging.error(f"Error processing Staffing Ratio: {e}")
-                logging.debug("Detailed traceback:", exc_info=True)
-                alert_label.config(text="Error processing Staffing Ratio.")
-        else:
-            logging.warning("Please select a sheet.")
-            alert_label.config(text="Please select a sheet.")
-    
-    elif selected_option == "Head Count":
-        sheet1 = dropdown1.get()
-
-        if sheet1 != "Select Sheet":
-            sheet_id1 = all_sheets_data[sheet1]
-            try:
-                data_frame1 = fetcher.fetch_smartsheet_data(sheet_id1)
-                logging.info(f"Fetched data for Sheet 1 ({sheet1})")
-                calculator = Headcount(data_frame1)
-                summary_df = calculator.add_headcount_column()
-                create_response = fetcher.create_new_sheet("Head_Count_Calculated" + str(sheet_id1), summary_df)
-                sheet_id = create_response['result']['id']
-                add_response = fetcher.add_rows_to_sheet(sheet_id, summary_df)
-                summary_df.to_excel("Files/Head_Count_Calculated" + str(sheet_id1) + ".xlsx", index=False)
-                alert_label.config(text="Head Count Summary File Generated and Uploaded")
-            except Exception as e:
-                logging.error(f"Error processing Head Count: {e}")
-                logging.debug("Detailed traceback:", exc_info=True)
-                alert_label.config(text="Error processing Head Count.")
         else:
             logging.warning("Please select a sheet.")
             alert_label.config(text="Please select a sheet.")
@@ -288,7 +241,7 @@ grant_end_date_picker = DateEntry(input_frame, width=12)
 
 # Attach the trace_add callback after input_frame is defined
 dropdown.trace_add("write", lambda *args: show_input_fields())  # Trigger on dropdown change
-OptionMenu(root, dropdown, "Select an option", "Clinic Turnover", "Months Worked", "Staffing Ratio", "Head Count", bootstyle="primary").pack(pady=5)
+OptionMenu(root, dropdown, "Select an option", "Clinic Turnover", "Months Worked + Staffing Ratio + Head Count", bootstyle="primary").pack(pady=5)
 
 # Alert label for feedback
 alert_label = tk.Label(root, text="", font=("Arial", 10), fg="green", bg=style.colors.bg)

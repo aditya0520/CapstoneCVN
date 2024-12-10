@@ -16,8 +16,48 @@ class MonthsWorked:
         self.report_start_date = datetime.strptime(report_start_date, '%Y-%m-%d') if isinstance(report_start_date, str) else report_start_date
         self.report_end_date = datetime.strptime(report_end_date, '%Y-%m-%d') if isinstance(report_end_date, str) else report_end_date
         self.df = self.input_df.copy()
-        
 
+    def validate_input_dataframe(self, df):
+        """
+        Validate the input DataFrame for required columns, datatypes, and values.
+
+        Args:
+        - df (pd.DataFrame): The input DataFrame to validate.
+
+        Raises:
+        - ValueError: If required columns are missing or datatypes/values are invalid.
+        """
+        # Check for missing columns
+        required_columns = ['Position', 'FTE-Adjusted Months Worked', 'End Date']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {', '.join(missing_columns)} in the input data.")
+
+        # Check for empty dataset
+        if df.empty:
+            raise ValueError("The input DataFrame is empty. Please provide valid data.")
+
+        # Validate datatypes
+        if not pd.api.types.is_numeric_dtype(df['FTE-Adjusted Months Worked']):
+            raise ValueError("'FTE-Adjusted Months Worked' must be a numeric column.")
+
+        if not pd.api.types.is_string_dtype(df['Position']):
+            raise ValueError("'Position' must be a string column.")
+
+        if not (pd.api.types.is_datetime64_any_dtype(df['End Date']) or not pd.api.types.is_string_dtype(df['End Date'])):
+            raise ValueError("'End Date' must be a datetime or string column.")
+
+        # Check for negative or missing values in key columns
+        if (df['FTE-Adjusted Months Worked'] < 0).any():
+            raise ValueError("'FTE-Adjusted Months Worked' contains negative values.")
+
+        if df['Position'].isnull().any():
+            raise ValueError("The 'Position' column contains missing values.")
+
+        # Check for duplicates
+        if df.duplicated().any():
+            raise ValueError("The input DataFrame contains duplicate rows.")
+        
     def calculate_months_in_period(self, start_date, end_date, fte, role, name, leave_start=None, leave_end=None, include_start_month=False, skip_first_partial_month=False):
         """
         Calculate months worked within a reporting period.
@@ -138,4 +178,92 @@ class MonthsWorked:
             'FTE-Adjusted Months Worked'    
         ]
         return self.df[selected_columns]
+    
+    def add_headcount_column(self, df):
+        """
+        Adds a 'Headcount' column to the DataFrame. The headcount value
+        appears only in the first row of the column.
 
+        Returns:
+            pd.DataFrame: Updated DataFrame with the 'Headcount' column.
+        """
+        try:
+            # Calculate the headcount
+            df = df.copy()
+            headcount_value = df['FTE-Adjusted Months Worked'].sum() / 12
+
+            # Add the 'Headcount' column with the value only in the first row
+            df['Headcount'] = ""  # This adds the column to all rows
+            df.loc[df.index[0], 'Headcount'] = headcount_value 
+
+            return df
+        except Exception as e:
+            print(f"An error occurred while adding the headcount column: {e}")
+            return None
+    
+    def generate_summary(self, input_dataframe, grant_year=12):
+        """
+        Generate a staffing summary from the input DataFrame and append the new summary columns back to it.
+
+        Args:
+        - input_dataframe (pd.DataFrame): DataFrame containing pre-calculated staffing data.
+
+        Returns:
+        - pd.DataFrame: The original DataFrame with appended summary columns.
+        """
+        df = input_dataframe.copy()
+        roles_to_track = [
+            'Regional Director', 'Clinic Director', 'Lead Clinician', 'Clinician', 
+            'Prescriber', 'Front Desk/Receptionist', 'Intake', 'Case Management',
+            'Office Manager', 'Outreach', 'Marketing/Communications', 
+            'Data Manager', 'Intern', 'Fellow'
+        ]
+        try:
+            # Validate input DataFrame
+            self.validate_input_dataframe(df)
+
+            # Extract the Cohen Clinic name
+            clinic_name = df.iloc[0]['Cohen Clinic'] if 'Cohen Clinic' in df.columns else 'Unknown Clinic'
+
+            summary = {
+                'Cohen Clinic': clinic_name,
+                'Total Staff': df['FTE-Adjusted Months Worked'].sum() / grant_year
+            }
+
+            # Role-specific headcounts for the entire grant year
+            for role in roles_to_track:
+                summary[f"# of {role}s"] = (
+                    df.loc[df['Position'] == role, 'FTE-Adjusted Months Worked'].sum() / grant_year
+                )
+
+            summary['Leads + Clinicians'] = (
+                summary.get("# of Lead Clinicians", 0) +
+                summary.get("# of Clinicians", 0)
+            )
+
+            # Ensure roles default to 0 if not present
+            for role in roles_to_track:
+                if role not in df['Position'].unique():
+                    summary[f"# of {role}s"] = 0
+
+            # Handle missing End Date
+            summary['Currently Working Count'] = df['End Date'].isna().sum()
+
+            # Create a DataFrame from the summary
+            summary_df = pd.DataFrame([summary])
+
+            # Identify new columns in the summary that are not in the original DataFrame
+            new_columns = [col for col in summary_df.columns if col not in df.columns]
+
+            # Add new columns to the input DataFrame
+            for col in new_columns:
+                df[col] = None  # Initialize new column with None
+                df.at[0, col] = summary_df[col].iloc[0]
+
+            return df
+
+        except ValueError as ve:
+            raise RuntimeError(f"Validation error: {ve}")
+
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error occurred: {e}")
